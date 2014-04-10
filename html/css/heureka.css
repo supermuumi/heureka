@@ -1,0 +1,47 @@
+//@font-face { font-family: Diavlo; src: url('Diavlo_BLACK_II_37.otf'); }
+@font-face { font-family: Diavlo; src: url('Satellite.otf'); }
+
+body {
+    background-color: #caccaa;
+    font-family: Diavlo;
+}
+
+h1 { 
+    font-size: 2.0em;
+    font-weight: bold;
+    /*font-variant: small-caps;*/
+    text-transform: uppercase;
+    background-color: #aaaa88;
+    padding: 0.4em;
+    vertical-align: bottom;
+    border-bottom: 2px solid black;
+}
+
+input:not([type=submit]):not([type=file]) {
+    font-family: Diavlo;
+    font-size: 1em;
+    
+    /* omg so much cleaner */
+    border: 1px solid white; 
+    -webkit-box-shadow: 
+        inset 0 0 8px  rgba(0,0,0,0.1),
+              0 0 16px rgba(0,0,0,0.1); 
+    -moz-box-shadow: 
+        inset 0 0 8px  rgba(0,0,0,0.1),
+              0 0 16px rgba(0,0,0,0.1); 
+    box-shadow: 
+      inset 0 0 8px  rgba(0,0,0,0.1),
+            0 0 16px rgba(0,0,0,0.1); 
+    padding: 0.4em;
+    background: rgba(255,255,255,0.5);
+    margin: 0 0 10px 0;
+}
+
+input[type=text] {
+    width: 100%;
+}
+
+div.cell {
+    display: table-cell;
+    padding: 0.5em;
+}
