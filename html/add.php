@@ -1,6 +1,7 @@
 <?php
 require_once("db.php");
 
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -16,16 +17,19 @@ require_once("db.php");
 <div style="width:100%">
   <div style="float:left;width:48%;">
     <h1>Go crazy!</h1>
-    <form action="#" method="POST">
-
+    <form action="posthandler.php" method="POST">
+      <input type="hidden" name="cmd" value="addnew"/>
       <div style="display: table; width:100%;">
-        <div style="display: table-row;">
+        <div class="row">
           <div class="cell">Summary:</div>
-          <div class="cell"><input type="text"/></div>
+          <div class="cell"><input type="text" name="summary"/></div>
         </div>
-        <div style="display: table-row;">
-          <div class="cell">Bblabla:</div>
-          <div class="cell"><input type="text"/></div>
+        <div class="row">
+          <div class="cell">Details:</div>
+          <div class="cell"><textarea name="details"></textarea></div>
+        </div>
+        <div class="row">
+          <input type="submit" value="Add idea"/>
         </div>
       </div>
     </form>

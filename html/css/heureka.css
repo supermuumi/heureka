@@ -1,5 +1,5 @@
 //@font-face { font-family: Diavlo; src: url('Diavlo_BLACK_II_37.otf'); }
-@font-face { font-family: Diavlo; src: url('Satellite.otf'); }
+@font-face { font-family: Diavlo; src: url('GeosansLight.ttf'); }
 
 body {
     background-color: #caccaa;
@@ -17,7 +17,8 @@ h1 {
     border-bottom: 2px solid black;
 }
 
-input:not([type=submit]):not([type=file]) {
+/*input:not([type=submit]):not([type=file]), textarea {*/
+input:not([type=file]), textarea {
     font-family: Diavlo;
     font-size: 1em;
     
@@ -37,11 +38,27 @@ input:not([type=submit]):not([type=file]) {
     margin: 0 0 10px 0;
 }
 
-input[type=text] {
+input[type=text], textarea {
     width: 100%;
+}
+
+textarea {
+    height: 200px;
+}
+
+div.row {
+    display: table-row;    
 }
 
 div.cell {
     display: table-cell;
+    vertical-align: top;
     padding: 0.5em;
+}
+
+div.cellheader {
+    display:     table-cell;
+    font-weight: bold;
+    padding:     0.5em;
+    background-color: #d00d00;
 }

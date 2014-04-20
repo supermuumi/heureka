@@ -1,0 +1,2 @@
+* route all POSTs through common handler, then HTTP redirect to page x
+* 

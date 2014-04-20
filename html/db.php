@@ -1,92 +1,136 @@
 <?php
 
-/*
- *
- */
-function db_connect()
-{
-    global $dbh;
-    $dbh = mysql_connect('localhost', 'root', 'root');
-}
+class Hdb {
 
-/*
- *
- */
-function db_listIdeas($newestFirst=TRUE, $limit=-1) {
-    global $dbh;
+    protected $dbh;
 
-    $q = "SELECT * FROM idea WHERE status <> 'archived' ORDER BY created";
-    if ($newestFirst == TRUE) 
-        $q .= " DESC";
-
-    if ($limit > 0)
-        $q .= " LIMIT ".$limit;
-
-    $res = mysql_query($q);
-
-    print "<table>";
-    while ($row = mysql_fetch_assoc($res))
+    function __construct()
     {
-        print "<tr>";
-        print '<td><a href="viewidea.php?id='.$row["id"].'">'.$row["summary"].'</a></td>';
-        print '<td>'.$row["owner"].'</td>';
-        print '<td>'.$row["created"].'</td>';
-        print '<td>'.$row["last_updated"].'</td>';
-        print "</tr>";
+        $this->dbh = mysqli_connect('localhost', 'root', 'root', 'heureka') or die("mysqli_connect fail");
     }
-    print "</table>";
 
-    mysql_free_result($res);
-}
+    function listIdeas($order="created", $newestFirst=TRUE, $limit=-1) {
+        $q = "SELECT * FROM idea WHERE status <> 'archived' ORDER BY ";
 
-/*
- *
- */
-function db_addIdea($summary, $details, $owner)
-{
-    $q = sprintf(
-        'INSERT INTO idea (summary,details,owner,status,created,last_updated) VALUES ("%s", "%s", %d, "open", NOW(), NOW())',
-        $summary,
-        $details,
-        $ownerId
-        );
+        // order by
+        if ($order == "updated")
+            $q .= "last_updated";
+        else
+            $q .= "created";
+
+        if ($newestFirst == TRUE) 
+            $q .= " DESC";
+
+        // limit
+        if ($limit > 0)
+            $q .= " LIMIT ".$limit;
+
+        $res = mysqli_query($this->dbh, $q);
+
+        print '<div style="display:table; width:100%;">';
+        if (mysqli_num_rows($res) > 0)
+        {
+            print '<div class="row">';
+            print '<div class="cellheader">Idea</div>';
+            print '<div class="cellheader">Owner</div>';
+            print '<div class="cellheader">Created</div>';
+            print "</div>";
+        }
+        while ($row = mysqli_fetch_assoc($res))
+        {
+            print '<div class="row">';
+            print '<div class="cell"><a href="view.php?id='.$row["id"].'">'.$row["summary"].'</a></div>';
+            print '<div class="cell">'.$row["owner"].'</div>';
+            print '<div class="cell">'.$row["created"].'</div>';
+            print "</div>";
+        }
+        print "</div>";
+    }
+
+    function addIdea($summary, $details, $ownerId)
+    {
+        $q = sprintf(
+            'INSERT INTO idea (summary,details,owner,status,created,last_updated) VALUES ("%s", "%s", %d, "open", NOW(), NOW())',
+            $summary,
+            $details,
+            $ownerId
+            );
     
-    $res = mysql_query($q);
-}
+        error_log("addIdea:\n".$q);
 
-/*
- *
- */
-function db_updateIdea($id, $summary, $details, $status) {
+        $res = mysqli_query($this->dbh, $q);
+    }
 
-    $q = sprintf(
-        'UPDATE idea SET summary="%s", details="%s", status="%s", last_updated=NOW() WHERE id=%d', 
-        $summary,
-        $details,
-        $status,
-        $id
-        );
+    function updateIdea($id, $summary, $details, $status) {
+
+        $q = sprintf(
+            'UPDATE idea SET summary="%s", details="%s", status="%s", last_updated=NOW() WHERE id=%d', 
+            $summary,
+            $details,
+            $status,
+            $id
+            );
     
-    $res = mysql_query($q);
-}
+        $res = mysqli_query($this->dbh, $q);
+    }
 
-function db_attachFileToIdea($id, $text) {
-}
+    function attachFileToIdea($id, $text) {
+    }
+
+    function commentOnIdea($id, $text) {
+        $q = sprintf(
+            'INSERT INTO comment (idea_id, user_id, comment, timestamp) VALUES (%d,%d,"%s", NOW())',
+            $id, 
+            $this->getCurrentUserId(), 
+            $text);
+
+        error_log("commentonidea: q=".$q);
+
+        $res = mysqli_query($this->dbh, $q);        
+    }
+
+    function voteIdea($id, $userId, $vote)
+    {
+        $res = mysqli_query($this->dbh, "UPDATE vote SET vote=".$vote." WHERE idea_id=".$id." AND user_id=".$userId);
+        if (mysqli_num_rows($res) == 0)
+            $res = mysqli_query($this->dbh, "INSERT INTO vote (idea_id, user_id, vote) VALUES (".$id.", ".$userId.", ".$vote.")");
+    }
 
 
-function db_voteIdea($id, $userId, $vote)
-{
-    $res = mysql_query("UPDATE vote SET vote=".$vote." WHERE idea_id=".$id." AND user_id=".$userId);
-    if (mysql_num_rows($res) == 0)
-        $res = mysql_query("INSERT INTO vote (idea_id, user_id, vote) VALUES (".$id.", ".$userId.", ".$vote.")");
-}
+    function deleteIdea($id) 
+    {
+        $res = mysqli_query($this->dbh, "DELETE FROM idea WHERE id=".$id);
+    }
 
+    function getIdea($id)
+    {
+        // TODO optimize query
+        $res = mysqli_query($this->dbh, "SELECT summary,details,owner,created,last_updated FROM idea WHERE id=".$id);
+        if (mysqli_num_rows($res) > 0)
+            return mysqli_fetch_assoc($res);
+        else
+            return NULL;
+    }
 
-function db_deleteIdea($id) 
-{
-    global $dbh;
+    function getComments($id)
+    {
+        $q = "SELECT * FROM comment WHERE idea_id=".$id." ORDER BY timestamp";
+        error_log("getComments: q=".$q);
+        $res = mysqli_query($this->dbh, $q);
+        $ret = array();
+        while ($row = mysqli_fetch_assoc($res))
+        {
+            $ret[] = $row;
+        }
+        return $ret;
+    }
 
-    $res = mysql_query("DELETE FROM idea WHERE id=".$id);
+    function getCurrentUserId()
+    {
+        // TODO
+        return 1;
+    }
+
 }
 
 ?>
